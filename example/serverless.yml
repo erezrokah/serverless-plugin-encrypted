@@ -1,0 +1,31 @@
+service: serverless-plugin-encrypted-example
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: us-east-1
+
+plugins:
+  - serverless-plugin-encrypted
+
+custom:
+  kmsKeyId: ${self:provider.stage}-${self:service}
+  env: ${file(.env.yml)}
+  encrypted:
+    SECRET_PASSWORD: ${self:custom.env.SECRET_PASSWORD}
+    OTHER_SECRET_PASSWORD: ${self:custom.env.OTHER_SECRET_PASSWORD}
+
+functions:
+  hello:
+    handler: src/handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors: true
+
+    environment:
+      NOT_SECRET: ${self:custom.env.NOT_SECRET}
+      SECRET_PASSWORD: ${self:custom.encrypted.SECRET_PASSWORD}
+      OTHER_SECRET_PASSWORD: ${self:custom.encrypted.OTHER_SECRET_PASSWORD}
